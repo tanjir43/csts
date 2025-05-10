@@ -24,6 +24,9 @@ class AuthController extends Controller
             'password'  => Hash::make($validatedData['password']),
         ]);
 
+        # Assign customer role by default
+        $user->assignRole('customer');
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -54,6 +57,7 @@ class AuthController extends Controller
             'access_token'  => $token,
             'token_type'    => 'Bearer',
             'user'          => $user,
+            'roles'         => $user->getRoleNames(),
         ]);
     }
 
