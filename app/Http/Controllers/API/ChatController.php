@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use Pusher\Pusher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
@@ -49,6 +50,23 @@ class ChatController extends Controller
         $message = $this->chatRepository->create([
             'ticket_id' => $ticketId,
             'message' => $request->message
+        ]);
+
+        $message->load('user');
+
+        # Broadcast the message using Pusher
+        $pusher = new Pusher(
+            config('broadcasting.connections.pusher.key'),
+            config('broadcasting.connections.pusher.secret'),
+            config('broadcasting.connections.pusher.app_id'),
+            [
+                'cluster' => config('broadcasting.connections.pusher.options.cluster'),
+                'useTLS' => true
+            ]
+        );
+
+        $pusher->trigger("ticket-channel-{$ticketId}", 'new-message', [
+            'chat' => $message,
         ]);
 
         return response()->json([
