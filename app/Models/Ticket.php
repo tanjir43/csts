@@ -50,6 +50,8 @@ class Ticket extends Model implements HasMedia
     {
         $this->addMediaCollection('attachments')
             ->useDisk('public')
-            ->singleFile();
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'application/pdf', 'text/plain', 'application/jpg'])
+            ->singleFile()
+            ->withResponsiveImages();
     }
 }

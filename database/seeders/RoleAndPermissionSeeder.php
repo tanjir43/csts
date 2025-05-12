@@ -16,7 +16,15 @@ class RoleAndPermissionSeeder extends Seeder
 
         # Create permissions
         $permissions = [
-            'view.tickets',
+            'view tickets',
+            'create tickets',
+            'edit tickets',
+            'delete tickets',
+            'manage tickets',
+            'view comments',
+            'create comments',
+            'manage users',
+            'update ticket status',
         ];
 
         foreach ($permissions as $permission) {
@@ -27,7 +35,11 @@ class RoleAndPermissionSeeder extends Seeder
         $adminRole->givePermissionTo(Permission::all());
 
         $customerRole->givePermissionTo([
-            'view.tickets',
+            'view tickets',
+            'create tickets',
+            'edit tickets',
+            'view comments',
+            'create comments',
         ]);
     }
 }
