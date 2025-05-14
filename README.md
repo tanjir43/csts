@@ -1,61 +1,138 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Customer Support Ticketing System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A full-stack customer support ticketing system built with Laravel 12, Vue.js 3, and real-time chat functionality using Pusher.
 
-## About Laravel
+## 🚀 Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### Core Functionality
+- **User Authentication**: Registration, login, logout with Laravel Sanctum
+- **Role-based Access Control**: Admin and Customer roles with Spatie Laravel Permission
+- **Ticket Management**: Full CRUD operations with status tracking
+- **Real-time Chat**: Live messaging between customers and admins
+- **File Attachments**: Support for ticket attachments using Spatie Media Library
+- **Comment System**: Threaded discussions on tickets
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Admin Features
+- View all tickets from all users
+- Update ticket status (Open, In Progress, Resolved, Closed)
+- Update ticket priority (Low, Medium, High)
+- Manage customer tickets
+- Real-time chat with customers
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Customer Features
+- Create and manage personal tickets
+- View ticket history
+- Comment on tickets
+- Real-time chat with support staff
+- Upload attachments
 
-## Learning Laravel
+## 🛠 Tech Stack
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- **Backend**: Laravel 12
+- **Frontend**: Vue.js 3 with Composition API
+- **Styling**: Tailwind CSS
+- **Database**: MySQL
+- **Authentication**: Laravel Sanctum (API tokens)
+- **Authorization**: Spatie Laravel Permission
+- **Media Handling**: Spatie Laravel Media Library
+- **Real-time**: Pusher for WebSocket connections
+- **Build Tool**: Vite
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## 📋 Requirements
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- PHP 8.2+
+- Composer
+- Node.js 18+
+- NPM
+- MySQL 8.0+
+- Pusher account (for real-time features)
 
-## Laravel Sponsors
+## 🔧 Installation
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 1. Clone the Repository
+```bash
+git clone https://github.com/tanjir43/csts.git
+cd csts
+```
 
-### Premium Partners
+### 2. Install PHP Dependencies
+```bash
+composer install
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development/)**
-- **[Active Logic](https://activelogic.com)**
+### 3. Install Node Dependencies
+```bash
+npm install
+```
 
-## Contributing
+### 4. Environment Configuration
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 5. Database Setup
+Configure your database in `.env`:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=csts
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
+```
 
-## Code of Conduct
+### 6. Pusher Configuration
+Add your Pusher credentials to `.env`:
+```env
+BROADCAST_DRIVER=pusher
+PUSHER_APP_ID=your_app_id
+PUSHER_APP_KEY=your_app_key
+PUSHER_APP_SECRET=your_app_secret
+PUSHER_APP_CLUSTER=your_cluster
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+VITE_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
+VITE_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
+```
 
-## Security Vulnerabilities
+### 7. Run Migrations and Seeders
+```bash
+php artisan migrate:fresh --seed
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 8. Create Storage Link
+```bash
+php artisan storage:link
+```
 
-## License
+### 9. Build Frontend Assets
+```bash
+npm run build
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 🚀 Running the Application
+
+### Development Mode
+```bash
+# Terminal 1: Start Laravel server
+php artisan serve
+
+# Terminal 2: Start Vite dev server
+npm run dev
+
+# Terminal 3: Run queue worker (for real-time features)
+php artisan queue:work
+```
+
+
+## 👥 Default Users
+
+After seeding, you can use these accounts:
+
+**Admin Account:**
+- Email: `admin@admin.com`
+- Password: `12345678`
+
+**Customer Account:**
+- Email: `customer@customer.com`
+- Password: `12345678`
