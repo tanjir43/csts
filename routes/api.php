@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ChatController;
@@ -25,8 +26,33 @@ Route::middleware('auth:sanctum')->group(function () {
 
     # Broadcasting Authentication
     Route::post('/broadcasting/auth', function (Illuminate\Http\Request $request) {
-        return \Illuminate\Support\Facades\Broadcast::auth($request);
-    });
+        Log::info('Broadcasting auth request', [
+            'user' => $request->user() ? $request->user()->toArray() : null,
+            'channel' => $request->input('channel_name'),
+            'socket_id' => $request->input('socket_id')
+        ]);
+
+        $user = $request->user();
+
+        if (!$user) {
+            Log::warning('Broadcasting auth failed: No authenticated user');
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        \Illuminate\Support\Facades\Auth::setUser($user);
+
+        try {
+            $response = \Illuminate\Support\Facades\Broadcast::auth($request);
+            Log::info('Broadcasting auth successful', ['user_id' => $user->id]);
+            return $response;
+        } catch (\Exception $e) {
+            Log::error('Broadcasting auth exception', [
+                'message' => $e->getMessage(),
+                'user_id' => $user->id
+            ]);
+            return response()->json(['error' => 'Authorization failed'], 403);
+        }
+    })->middleware('broadcasting.auth');
 
     # Comment
     Route::get('/tickets/{ticket}/comments', [CommentController::class, 'index']);

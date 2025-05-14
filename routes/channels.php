@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\Log;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,14 +14,48 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
+// Private chat channel authorization
 Broadcast::channel('chat.{ticketId}', function ($user, $ticketId) {
-    # Check if user is owner of the ticket or an admin
-    $ticket = \App\Models\Ticket::find($ticketId);
+    // Debug logging
+    Log::info('Broadcast auth attempt', [
+        'user_id' => $user ? $user->id : null,
+        'ticket_id' => $ticketId,
+        'user_name' => $user ? $user->name : null
+    ]);
 
-    if (!$ticket) {
+    // Check if user is authenticated
+    if (!$user) {
+        Log::warning('Broadcast auth failed: No user authenticated');
         return false;
     }
 
-    # Allow if user is the ticket owner or has admin role
-    return $user->hasRole('admin') || $ticket->user_id === $user->id;
+    // Find the ticket
+    $ticket = \App\Models\Ticket::find($ticketId);
+
+    if (!$ticket) {
+        Log::warning('Broadcast auth failed: Ticket not found', ['ticket_id' => $ticketId]);
+        return false;
+    }
+
+    // Check if user has admin role or owns the ticket
+    $hasAdminRole = $user->hasRole('admin');
+    $ownsTicket = $ticket->user_id === $user->id;
+
+    Log::info('Broadcast auth check', [
+        'has_admin_role' => $hasAdminRole,
+        'owns_ticket' => $ownsTicket,
+        'ticket_owner_id' => $ticket->user_id,
+        'user_id' => $user->id
+    ]);
+
+    // Allow if user is the ticket owner or has admin role
+    $authorized = $hasAdminRole || $ownsTicket;
+
+    Log::info('Broadcast authorization result', [
+        'authorized' => $authorized,
+        'user_id' => $user->id,
+        'ticket_id' => $ticketId
+    ]);
+
+    return $authorized;
 });

@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\API;
 
-use Pusher\Pusher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use App\Events\ChatMessageSent;
 use App\Repositories\Interfaces\ChatRepositoryInterface;
 use App\Repositories\Interfaces\TicketRepositoryInterface;
 
@@ -32,7 +32,7 @@ class ChatController extends Controller
 
         $messages = $this->chatRepository->allForTicket($ticketId);
 
-        return response()->json(['data' => $messages]);
+        return response()->json(['data' => $messages]); // Changed structure
     }
 
     public function store(Request $request, $ticketId)
@@ -52,25 +52,12 @@ class ChatController extends Controller
             'message' => $request->body
         ]);
 
-        $message->load('user');
+        // Trigger the broadcast event
+        event(new ChatMessageSent($message));
 
-        # Broadcast the message using Pusher
-        $pusher = new Pusher(
-            config('broadcasting.connections.pusher.key'),
-            config('broadcasting.connections.pusher.secret'),
-            config('broadcasting.connections.pusher.app_id'),
-            [
-                'cluster' => config('broadcasting.connections.pusher.options.cluster'),
-                'useTLS' => true
-            ]
-        );
-
+        // Add 'body' field for frontend consistency
         $messageData = $message->toArray();
         $messageData['body'] = $message->message;
-
-        $pusher->trigger("private-chat.{$ticketId}", 'message.sent', [
-            'chat' => $messageData,
-        ]);
 
         return response()->json([
             'message' => 'Message sent successfully',

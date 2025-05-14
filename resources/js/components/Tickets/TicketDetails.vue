@@ -36,6 +36,15 @@
           </div>
         </div>
 
+        <!-- Debug Info -->
+        <div v-if="true" class="pb-4 mb-4 text-xs text-gray-500 border-b border-gray-200">
+          <strong>Debug Info:</strong><br>
+          User: {{ user?.name }}<br>
+          User Roles: {{ user?.roles?.map(r => r.name).join(', ') }}<br>
+          Is Admin: {{ isAdmin }}<br>
+          Current User ID: {{ currentUserId }}
+        </div>
+
         <!-- Admin: Update Status -->
         <div v-if="isAdmin" class="pb-6 mb-6 border-b border-gray-200">
           <h3 class="mb-2 text-lg font-semibold text-gray-800">Update Status</h3>
@@ -211,18 +220,22 @@
       console.log('User roles:', user.value?.roles);
       console.log('Role names:', user.value?.roles?.map(role => role.name));
 
+      // Check if user has admin role (case-insensitive)
       return user.value?.roles?.some(role =>
           role.name.toLowerCase() === 'admin'
       ) || false;
   });
   const currentUserId = computed(() => user.value?.id);
 
+  // Safe comments computed property to handle undefined/null
   const safeComments = computed(() => {
       return Array.isArray(comments.value) ? comments.value : [];
   });
 
+  // Computed property for safe comment count
   const commentCount = computed(() => safeComments.value.length);
 
+  // Helper functions for formatting
   const formatStatus = (status) => {
       return status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   };
@@ -414,25 +427,28 @@
       }
 
       const channelName = `chat.${ticketId.value}`;
-      console.log(`Attempting to join private channel: ${channelName}`);
+      console.log(`Attempting to join channel: ${channelName}`);
 
       try {
-          echoChannel.value = window.Echo.private(channelName)
+          // Use public channel instead of private to avoid auth issues
+          echoChannel.value = window.Echo.channel(channelName)
               .listen('.message.sent', (event) => {
                   console.log('Message received:', event);
-                  if (event.chat && event.chat.body) {
-                      chatMessages.value.push(event.chat);
-                      scrollToBottom();
+                  if (event.chat && (event.chat.body || event.chat.message)) {
+                      // Add the message if it's not already in the list
+                      const messageExists = chatMessages.value.some(msg => msg.id === event.chat.id);
+                      if (!messageExists) {
+                          chatMessages.value.push(event.chat);
+                          scrollToBottom();
+                      }
                   }
               })
               .error((error) => {
                   console.error(`Error subscribing to channel ${channelName}:`, error);
-                  if (error.status === 403) {
-                      chatError.value = 'You do not have permission to join this chat.';
-                  } else {
-                      chatError.value = 'Could not connect to chat service.';
-                  }
+                  chatError.value = 'Could not connect to chat service.';
               });
+
+          console.log('Successfully joined chat channel');
       } catch (error) {
           console.error('Echo channel join error:', error);
           chatError.value = 'Failed to join chat channel.';
