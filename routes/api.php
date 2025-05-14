@@ -14,7 +14,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     # Auth
     Route::get('/user', function (Illuminate\Http\Request $request) {
-        return $request->user();
+        return $request->user()->load('roles');
     });
     Route::post('/logout', [AuthController::class, 'logout']);
 

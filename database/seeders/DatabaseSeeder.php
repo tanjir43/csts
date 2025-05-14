@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use App\Models\Ticket;
 use Illuminate\Database\Seeder;
-use App\Models\User;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 
@@ -15,20 +15,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        # Create roles
         $adminRole = Role::create(['name' => 'admin']);
         $customerRole = Role::create(['name' => 'customer']);
 
-        # Create permissions (optional)
         Permission::create(['name' => 'manage tickets']);
         Permission::create(['name' => 'view all tickets']);
         Permission::create(['name' => 'update ticket status']);
         Permission::create(['name' => 'update ticket priority']);
 
-        # Assign permissions to roles
         $adminRole->givePermissionTo(['manage tickets', 'view all tickets', 'update ticket status', 'update ticket priority']);
 
-        # Create admin user
         $admin = User::create([
             'name' => 'System Admin',
             'email' => 'admin@example.com',
@@ -36,7 +32,6 @@ class DatabaseSeeder extends Seeder
         ]);
         $admin->assignRole('admin');
 
-        # Create a customer user
         $customer = User::create([
             'name' => 'John Customer',
             'email' => 'customer@example.com',
@@ -44,7 +39,6 @@ class DatabaseSeeder extends Seeder
         ]);
         $customer->assignRole('customer');
 
-        # Create some sample tickets
         Ticket::factory()->create([
             'user_id' => $customer->id,
             'subject' => 'Website Login Issue',

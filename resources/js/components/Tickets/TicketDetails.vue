@@ -206,18 +206,23 @@
   const echoChannel = ref(null);
 
   const ticketId = computed(() => route.params.id);
-  const isAdmin = computed(() => user.value?.roles?.some(role => role.name === 'admin'));
+  const isAdmin = computed(() => {
+      console.log('Checking admin status:', user.value);
+      console.log('User roles:', user.value?.roles);
+      console.log('Role names:', user.value?.roles?.map(role => role.name));
+
+      return user.value?.roles?.some(role =>
+          role.name.toLowerCase() === 'admin'
+      ) || false;
+  });
   const currentUserId = computed(() => user.value?.id);
 
-  // Safe comments computed property to handle undefined/null
   const safeComments = computed(() => {
       return Array.isArray(comments.value) ? comments.value : [];
   });
 
-  // Computed property for safe comment count
   const commentCount = computed(() => safeComments.value.length);
 
-  // Helper functions for formatting
   const formatStatus = (status) => {
       return status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   };
@@ -368,6 +373,7 @@
   };
 
   // --- Chat Functions ---
+
   const fetchChatMessages = async () => {
       chatLoading.value = true;
       chatError.value = null;
@@ -442,6 +448,7 @@
       }
   };
 
+  // Helper to scroll chat to bottom
   const chatContainer = ref(null);
   const scrollToBottom = () => {
       nextTick(() => {
@@ -453,6 +460,10 @@
   };
 
   onMounted(async () => {
+      console.log('TicketDetails mounted, user:', user.value);
+      console.log('User roles:', user.value?.roles);
+      console.log('Is admin:', isAdmin.value);
+
       fetchTicketDetails();
       fetchComments();
       fetchChatMessages();
