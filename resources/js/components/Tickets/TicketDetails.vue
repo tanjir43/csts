@@ -406,13 +406,17 @@
       if (!chatInput.value.trim()) return;
       sendingMessage.value = true;
       try {
-          await axios.post(`/api/tickets/${ticketId.value}/chats`, {
+          const response = await axios.post(`/api/tickets/${ticketId.value}/chats`, {
               body: chatInput.value,
           });
+          if (response.data && response.data.data) {
+              chatMessages.value.push(response.data.data);
+              scrollToBottom();
+          }
           chatInput.value = '';
       } catch (err) {
           console.error('Failed to send chat message:', err);
-          chatError.value = 'Failed to send message.';
+          chatError.value = err.response?.data?.message || 'Failed to send message.';
           setTimeout(() => chatError.value = null, 3000);
       } finally {
           sendingMessage.value = false;
@@ -430,12 +434,10 @@
       console.log(`Attempting to join channel: ${channelName}`);
 
       try {
-          // Use public channel instead of private to avoid auth issues
-          echoChannel.value = window.Echo.channel(channelName)
+          echoChannel.value = window.Echo.private(channelName)
               .listen('.message.sent', (event) => {
                   console.log('Message received:', event);
                   if (event.chat && (event.chat.body || event.chat.message)) {
-                      // Add the message if it's not already in the list
                       const messageExists = chatMessages.value.some(msg => msg.id === event.chat.id);
                       if (!messageExists) {
                           chatMessages.value.push(event.chat);

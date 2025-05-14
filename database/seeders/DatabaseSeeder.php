@@ -10,9 +10,6 @@ use Spatie\Permission\Models\Permission;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
         $adminRole = Role::create(['name' => 'admin']);
@@ -27,15 +24,15 @@ class DatabaseSeeder extends Seeder
 
         $admin = User::create([
             'name' => 'System Admin',
-            'email' => 'admin@example.com',
-            'password' => bcrypt('password123'),
+            'email' => 'admin@admin.com',
+            'password' => bcrypt('12345678'),
         ]);
         $admin->assignRole('admin');
 
         $customer = User::create([
             'name' => 'John Customer',
-            'email' => 'customer@example.com',
-            'password' => bcrypt('password123'),
+            'email' => 'customer@customer.com',
+            'password' => bcrypt('12345678'),
         ]);
         $customer->assignRole('customer');
 
