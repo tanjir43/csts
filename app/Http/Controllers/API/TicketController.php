@@ -19,16 +19,14 @@ class TicketController extends Controller
 
     public function index(Request $request)
     {
-
         $filters    = $request->only('status', 'title');
         $perPage    = $request->get('per_page', 15);
         $order      = $request->get('order', 'desc');
 
-
         if (Auth::user()->hasRole('admin')) {
             $tickets = $this->ticketRepository->all($filters, $perPage, $order);
         } else {
-            $tickets = $this->ticketRepository->allForUser($filters, $perPage, $order,Auth::id());
+            $tickets = $this->ticketRepository->allForUser($filters, $perPage, $order, Auth::id());
         }
 
         return response()->json(['tickets' => $tickets]);
@@ -98,6 +96,24 @@ class TicketController extends Controller
 
         return response()->json([
             'message' => 'Ticket status updated successfully',
+            'ticket' => $ticket
+        ]);
+    }
+
+    public function updatePriority(Request $request, $id)
+    {
+        $request->validate([
+            'priority' => 'required|string|in:low,medium,high'
+        ]);
+
+        if (!Auth::user()->hasRole('admin')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $ticket = $this->ticketRepository->updatePriority($id, $request->priority);
+
+        return response()->json([
+            'message' => 'Ticket priority updated successfully',
             'ticket' => $ticket
         ]);
     }

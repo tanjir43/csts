@@ -121,6 +121,14 @@ class TicketRepository implements TicketRepositoryInterface
         return $ticket;
     }
 
+    public function updatePriority($id, $priority)
+    {
+        $ticket = $this->model->findOrFail($id);
+        $ticket->priority = $priority;
+        $ticket->save();
+        return $ticket;
+    }
+
     public function addAttachment($id, $file)
     {
         $ticket = $this->model->findOrFail($id);

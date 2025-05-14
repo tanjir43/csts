@@ -6,17 +6,22 @@
       </div>
 
       <div v-if="ticket && !loading && !error" class="p-6 bg-white rounded-lg shadow-md">
+        <!-- Ticket Info -->
         <div class="pb-6 mb-6 border-b border-gray-200">
           <div class="flex items-center justify-between mb-4">
             <h1 class="text-3xl font-bold text-gray-800">{{ ticket.subject }}</h1>
             <span :class="getStatusClass(ticket.status)" class="px-3 py-1 text-sm font-semibold rounded-full">
-              {{ ticket.status }}
+              {{ formatStatus(ticket.status) }}
             </span>
           </div>
           <p class="mb-4 text-gray-700 whitespace-pre-wrap">{{ ticket.description }}</p>
           <div class="grid grid-cols-1 gap-4 text-sm text-gray-600 md:grid-cols-3">
-            <div><strong>Category:</strong> {{ ticket.category }}</div>
-            <div><strong>Priority:</strong> {{ ticket.priority }}</div>
+            <div><strong>Category:</strong> {{ formatCategory(ticket.category) }}</div>
+            <div><strong>Priority:</strong>
+              <span :class="getPriorityClass(ticket.priority)" class="px-2 py-1 text-xs font-semibold rounded-full">
+                {{ formatPriority(ticket.priority) }}
+              </span>
+            </div>
             <div><strong>Created:</strong> {{ formatDate(ticket.created_at) }}</div>
             <div><strong>Last Updated:</strong> {{ formatDate(ticket.updated_at) }}</div>
             <div v-if="ticket.user"><strong>Reported by:</strong> {{ ticket.user.name }}</div>
@@ -31,6 +36,7 @@
           </div>
         </div>
 
+        <!-- Admin: Update Status -->
         <div v-if="isAdmin" class="pb-6 mb-6 border-b border-gray-200">
           <h3 class="mb-2 text-lg font-semibold text-gray-800">Update Status</h3>
           <div class="flex items-center space-x-3">
@@ -47,6 +53,24 @@
           </div>
           <p v-if="statusUpdateError" class="mt-2 text-xs text-red-600">{{ statusUpdateError }}</p>
           <p v-if="statusUpdateSuccess" class="mt-2 text-xs text-green-600">{{ statusUpdateSuccess }}</p>
+        </div>
+
+        <!-- Admin: Update Priority -->
+        <div v-if="isAdmin" class="pb-6 mb-6 border-b border-gray-200">
+          <h3 class="mb-2 text-lg font-semibold text-gray-800">Update Priority</h3>
+          <div class="flex items-center space-x-3">
+            <select v-model="newPriority" class="block w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+            <button @click="updateTicketPriority" :disabled="updatingPriority" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50">
+              <span v-if="updatingPriority">Updating...</span>
+              <span v-else>Update Priority</span>
+            </button>
+          </div>
+          <p v-if="priorityUpdateError" class="mt-2 text-xs text-red-600">{{ priorityUpdateError }}</p>
+          <p v-if="priorityUpdateSuccess" class="mt-2 text-xs text-green-600">{{ priorityUpdateSuccess }}</p>
         </div>
 
         <!-- Comments Section -->
@@ -168,6 +192,11 @@
   const statusUpdateError = ref('');
   const statusUpdateSuccess = ref('');
 
+  const newPriority = ref('');
+  const updatingPriority = ref(false);
+  const priorityUpdateError = ref('');
+  const priorityUpdateSuccess = ref('');
+
   // Chat state
   const chatMessages = ref([]);
   const chatInput = ref('');
@@ -180,11 +209,35 @@
   const isAdmin = computed(() => user.value?.roles?.some(role => role.name === 'admin'));
   const currentUserId = computed(() => user.value?.id);
 
+  // Safe comments computed property to handle undefined/null
   const safeComments = computed(() => {
       return Array.isArray(comments.value) ? comments.value : [];
   });
 
+  // Computed property for safe comment count
   const commentCount = computed(() => safeComments.value.length);
+
+  // Helper functions for formatting
+  const formatStatus = (status) => {
+      return status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  };
+
+  const formatPriority = (priority) => {
+      return priority.charAt(0).toUpperCase() + priority.slice(1);
+  };
+
+  const formatCategory = (category) => {
+      return category.charAt(0).toUpperCase() + category.slice(1);
+  };
+
+  const getPriorityClass = (priority) => {
+      switch (priority?.toLowerCase()) {
+          case 'high': return 'bg-red-100 text-red-800';
+          case 'medium': return 'bg-yellow-100 text-yellow-800';
+          case 'low': return 'bg-green-100 text-green-800';
+          default: return 'bg-gray-100 text-gray-800';
+      }
+  };
 
   const fetchTicketDetails = async () => {
     loading.value = true;
@@ -194,6 +247,7 @@
       if (response.data && response.data.ticket) {
         ticket.value = response.data.ticket;
         newStatus.value = ticket.value.status;
+        newPriority.value = ticket.value.priority;
       } else {
         console.error('Failed to fetch ticket details: Unexpected API response format', response);
         console.log('API Response Data:', response.data);
@@ -276,6 +330,27 @@
       }
   };
 
+  const updateTicketPriority = async () => {
+      if (!newPriority.value) return;
+      updatingPriority.value = true;
+      priorityUpdateError.value = '';
+      priorityUpdateSuccess.value = '';
+      try {
+          const response = await axios.patch(`/api/tickets/${ticketId.value}/priority`, {
+              priority: newPriority.value
+          });
+          ticket.value.priority = response.data.ticket.priority;
+          priorityUpdateSuccess.value = 'Priority updated successfully!';
+          setTimeout(() => priorityUpdateSuccess.value = '', 3000);
+      } catch (err) {
+          console.error('Failed to update priority:', err);
+          priorityUpdateError.value = err.response?.data?.message || 'Failed to update priority.';
+          setTimeout(() => priorityUpdateError.value = '', 3000);
+      } finally {
+          updatingPriority.value = false;
+      }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -292,6 +367,7 @@
     }
   };
 
+  // --- Chat Functions ---
   const fetchChatMessages = async () => {
       chatLoading.value = true;
       chatError.value = null;

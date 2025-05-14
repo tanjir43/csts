@@ -21,6 +21,7 @@ Route::middleware('auth:sanctum')->group(function () {
     # Ticket
     Route::apiResource('tickets', TicketController::class);
     Route::patch('/tickets/{id}/status', [TicketController::class, 'updateStatus']);
+    Route::patch('/tickets/{id}/priority', [TicketController::class, 'updatePriority']);
 
     # Broadcasting Authentication
     Route::post('/broadcasting/auth', function (Illuminate\Http\Request $request) {
