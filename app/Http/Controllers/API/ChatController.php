@@ -32,13 +32,13 @@ class ChatController extends Controller
 
         $messages = $this->chatRepository->allForTicket($ticketId);
 
-        return response()->json(['messages' => $messages]);
+        return response()->json(['data' => $messages]);
     }
 
     public function store(Request $request, $ticketId)
     {
         $request->validate([
-            'message' => 'required|string'
+            'body' => 'required|string'
         ]);
 
         $ticket = $this->ticketRepository->find($ticketId);
@@ -49,7 +49,7 @@ class ChatController extends Controller
 
         $message = $this->chatRepository->create([
             'ticket_id' => $ticketId,
-            'message' => $request->message
+            'message' => $request->body
         ]);
 
         $message->load('user');
@@ -65,13 +65,16 @@ class ChatController extends Controller
             ]
         );
 
-        $pusher->trigger("ticket-channel-{$ticketId}", 'new-message', [
-            'chat' => $message,
+        $messageData = $message->toArray();
+        $messageData['body'] = $message->message;
+
+        $pusher->trigger("private-chat.{$ticketId}", 'message.sent', [
+            'chat' => $messageData,
         ]);
 
         return response()->json([
             'message' => 'Message sent successfully',
-            'chat_message' => $message
+            'data' => $messageData
         ], 201);
     }
 

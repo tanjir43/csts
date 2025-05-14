@@ -13,11 +13,19 @@ Route::post('/login', [AuthController::class, 'login']);
 # Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     # Auth
+    Route::get('/user', function (Illuminate\Http\Request $request) {
+        return $request->user();
+    });
     Route::post('/logout', [AuthController::class, 'logout']);
 
     # Ticket
     Route::apiResource('tickets', TicketController::class);
     Route::patch('/tickets/{id}/status', [TicketController::class, 'updateStatus']);
+
+    # Broadcasting Authentication
+    Route::post('/broadcasting/auth', function (Illuminate\Http\Request $request) {
+        return \Illuminate\Support\Facades\Broadcast::auth($request);
+    });
 
     # Comment
     Route::get('/tickets/{ticket}/comments', [CommentController::class, 'index']);

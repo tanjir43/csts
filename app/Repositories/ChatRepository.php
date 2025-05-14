@@ -20,7 +20,12 @@ class ChatRepository implements ChatRepositoryInterface
         return $this->model->where('ticket_id', $ticketId)
             ->with('user')
             ->orderBy('created_at', 'asc')
-            ->get();
+            ->get()
+            ->map(function ($chat) {
+                $chatArray = $chat->toArray();
+                $chatArray['body'] = $chat->message;
+                return $chatArray;
+            });
     }
 
     public function create(array $data)

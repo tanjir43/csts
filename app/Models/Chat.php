@@ -14,6 +14,11 @@ class Chat extends Model
         'message',
         'user_id',
         'ticket_id',
+        'is_read'
+    ];
+
+    protected $casts = [
+        'is_read' => 'boolean'
     ];
 
     public function user(): BelongsTo
